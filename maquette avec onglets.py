@@ -23,7 +23,7 @@ Created on Wed Jan 22 10:45:36 2025
 # =========================================
 
 ## À faire
-#- [ ] Tenter de déployer le code pour l'envoyer à Paolo (créer github pour pouvoir déployer app)
+#- [ ] 
 #- [ ] Intégrer la dimension financière A faire avant mercredi
 
 ## Fait
@@ -31,6 +31,7 @@ Created on Wed Jan 22 10:45:36 2025
 #- [x] Création de la possibilité de déposer un fichier template de bilan carbone
 #- [x] Interface web test pour les targets et l'affichage de graphe et les fonctions d'actualisation ("maquette target dashboard")
 #- [x] Modifier target auto après solutions
+#- [x] Tenter de déployer le code pour l'envoyer à Paolo (créer github pour pouvoir déployer app)
 
 ## Idées futures
 #- Logique à repenser autour des dates (choix à faire, mettre chaquye année ou seulement 2,3 , lesquelles? Via discussion en réu pôle metrics
