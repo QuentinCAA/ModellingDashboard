@@ -6,8 +6,13 @@ Created on Tue Jan 21 11:29:09 2025
 """
 
 import streamlit as st
+# Active le mode large pour réduire les marges (à mettre en première commande streamlit du code sinon bug)
+st.set_page_config(layout="wide")  
+
 import matplotlib.pyplot as plt
 import numpy as np
+
+
 
 # Data fi
 years = [2023, 2027, 2030, 2035]
@@ -26,8 +31,7 @@ financial_supportca = [6.5, 6.5, 6.5, 6.5]
 servicesca = [37, 37, 37, 37]
 travelsca = [33.4, 33.4, 33.4, 33.4]
 
-# Active le mode large pour réduire les marges (à mettre en première commande streamlit du code sinon bug)
-st.set_page_config(layout="wide")  
+
 
 # Réduire l'espace au-dessus du titre
 st.markdown("""
@@ -40,7 +44,11 @@ st.markdown("""
 
 # Interface utilisateur Streamlit
 st.title("Interactive Target Dashboard")
- 
+# Initialiser les variables dans st.session_state si elles n'existent pas encore
+if "updatedtravelsca" not in st.session_state:
+    st.session_state.updatedtravelsca = [33.4, 33.4, 33.4, 33.4]
+if "updatedtravelsfi" not in st.session_state:
+    st.session_state.updatedtravelsfi = [40, 40, 40, 40]
 
 
 #Création des colonnes pour pouvoir mettre curseurs et graphe côte à côte
@@ -65,24 +73,47 @@ with col3:
 ftravel = 1
 
 # Fonction pour mettre à jour les données
-def update_data(target1, target2, target3, target4):
-    # Mise à jour des valeurs pour Barplottest
-    updatedtravelsca,updatedtravelsfi = travelsca,travelsfi
-    updatedtravelsca [1] = travelsca[1] *(100-target1/2)/100
-    updatedtravelsca [2] = travelsca[2] *(100-target1)/100
-    updatedtravelsca [3] = travelsca[3] *(100-target2)/100
-    updatedtravelsfi [1] = travelsfi[1] *(100+target1/2*ftravel)/100
-    updatedtravelsfi [2] = travelsfi[2] *(100+target1*ftravel)/100
-    updatedtravelsfi [3] = travelsfi[3] *(100+target2*ftravel)/100
+# def update_data(target1, target2, target3, target4):
+#     # Mise à jour des valeurs pour Barplottest
+#     updatedtravelsca,updatedtravelsfi = travelsca,travelsfi
+#     updatedtravelsca [1] = travelsca[1] *(100-target1/2)/100
+#     updatedtravelsca [2] = travelsca[2] *(100-target1)/100
+#     updatedtravelsca [3] = travelsca[3] *(100-target2)/100
+#     updatedtravelsfi [1] = travelsfi[1] *(100+target1/2*ftravel)/100
+#     updatedtravelsfi [2] = travelsfi[2] *(100+target1*ftravel)/100
+#     updatedtravelsfi [3] = travelsfi[3] *(100+target2*ftravel)/100
     
     
 
-    return updatedtravelsca,updatedtravelsfi
+#     return updatedtravelsca,updatedtravelsfi
 
 
+def update_data(target1, target2,target3, target4,target5):
+    # Création de copies pour éviter les modifications directes
+    updatedtravelsca = st.session_state.updatedtravelsca[:]
+    updatedtravelsfi = st.session_state.updatedtravelsfi[:]
+
+    ftravel = 1  # Facteur financier (tu peux le garder global si nécessaire)
+
+    # Mise à jour des valeurs
+    updatedtravelsca[1] = updatedtravelsca[1] * (100 - target1 / 2) / 100
+    updatedtravelsca[2] = updatedtravelsca[2] * (100 - target1) / 100
+    updatedtravelsca[3] = updatedtravelsca[3] * (100 - target2) / 100
+
+    updatedtravelsfi[1] = updatedtravelsfi[1] * (100 + target1 / 2 * ftravel) / 100
+    updatedtravelsfi[2] = updatedtravelsfi[2] * (100 + target1 * ftravel) / 100
+    updatedtravelsfi[3] = updatedtravelsfi[3] * (100 + target2 * ftravel) / 100
+
+    # Enregistrer dans st.session_state pour que ça ne se réinitialise pas
+    st.session_state.updatedtravelsca = updatedtravelsca
+    st.session_state.updatedtravelsfi = updatedtravelsfi
 
 # Mise à jour des données
-updatedtravelsca,updatedtravelsfi=update_data(target1, target2, target3, target4)
+# updatedtravelsca,updatedtravelsfi=update_data(target1, target2, target3, target4,target5)
+update_data(target1, target2, target3, target4,target5)
+
+assert all(len(lst) == len(years) for lst in [energyfi, goodsfi, financial_supportfi, servicesfi, travelsfi]), "Inconsistent list sizes"
+assert all(len(lst) == len(years) for lst in [energyca, goodsca, financial_supportca, servicesca, st.session_state.updatedtravelsca]), "Inconsistent list sizes"
 
 # Prepare data for stacked area plot
 categoriesfi = np.array([energyfi, goodsfi, financial_supportfi, servicesfi, travelsfi])
