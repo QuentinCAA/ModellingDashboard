@@ -23,8 +23,8 @@ Created on Wed Jan 22 10:45:36 2025
 # =========================================
 
 ## À faire
+#- [ ] Coeff liées à solutions peuvent jouer sur quantité et sur FE/prix -> besoin de 4 types de coeff ? (voir avec Paolo)
 #- [ ] 
-#- [ ] Intégrer la dimension financière A faire avant mercredi
 
 ## Fait
 #- [x] Création des solutions dans l onglet 3
@@ -32,6 +32,7 @@ Created on Wed Jan 22 10:45:36 2025
 #- [x] Interface web test pour les targets et l'affichage de graphe et les fonctions d'actualisation ("maquette target dashboard")
 #- [x] Modifier target auto après solutions
 #- [x] Tenter de déployer le code pour l'envoyer à Paolo (créer github pour pouvoir déployer app)
+#- [x] Intégrer la dimension financière
 
 ## Idées futures
 #- Logique à repenser autour des dates (choix à faire, mettre chaquye année ou seulement 2,3 , lesquelles? Via discussion en réu pôle metrics
@@ -70,35 +71,65 @@ if "Nom" not in st.session_state:
 
 with tabs[0]:
     st.title("Accueil : Téléverser un fichier Excel")
-    st.write("Bienvenue ! Téléversez votre fichier Excel avec le template défini pour commencer.")
-    uploaded_file = st.file_uploader("Téléversez un fichier Excel", type=["xlsx"])
-    # Étape 1 : Créer un DataFrame vide
-    columns = ["Poste", "Quantité", "FE", "Emission"]
-    databc = pd.DataFrame(columns=columns)
-
-    if uploaded_file:
-        try:
-            data = pd.read_excel(uploaded_file)
-            databc=data
-            
-            st.success("Fichier téléversé avec succès !")
-            st.write("Aperçu des données :", data.head())
-            
-            st.write("Transfert 1 réussi? :", databc.head())
-            fig = px.bar(databc, x="Poste", y="Emission", title="Émissions par Poste", labels={"Emission": "Émissions (kgCO2)"})
-            st.plotly_chart(fig)
-            
-        except Exception as e:
-            st.error(f"Erreur lors de la lecture du fichier : {e}")
+    st.write("Bienvenue ! Téléversez vos fichier Excels avec les bons templates définis pour commencer.")
     
+    
+    columns = ["Poste", "Quantité", "FE", "Emission"]
+    columns2 = ["Poste", "Quantité", "FE", "Emission"]
+    databc = pd.DataFrame(columns=columns)
+    databc2 = pd.DataFrame(columns=columns2)
+    
+    col1,col2=st.columns(2)
+    with col1:
+        uploaded_file = st.file_uploader("Téléversez le fichier empreinte", type=["xlsx"])
+        if uploaded_file:
+            try:
+                data = pd.read_excel(uploaded_file)
+                databc=data
+                
+                data2030=databc.copy()
+                data2035=databc.copy()
+                
+                st.success("Fichier téléversé avec succès !")
+                #st.write("Aperçu des données :", data.head())
+                
+                st.write("Aperçu des données :", databc.head())
+                fig = px.bar(databc, x="Poste", y="Emission", title="Émissions par Poste", labels={"Emission": "Émissions (kgCO2)"})
+                st.plotly_chart(fig)
+                
+            except Exception as e:
+                st.error(f"Erreur lors de la lecture du fichier : {e}")
+            
+    with col2:
+        
+        uploaded_file2 = st.file_uploader("Téléversez le fichier finance", type=["xlsx"])
+        # Étape 1 : Créer un DataFrame vide
+        
+        if uploaded_file2:
+            try:
+                data2 = pd.read_excel(uploaded_file2)
+                databc2=data2
+                
+                data2030F=databc2.copy()
+                data2035F=databc2.copy()
+                
+                st.success("Fichier téléversé avec succès !")
+                #st.write("Aperçu des données :", data2.head())
+                
+                st.write("Aperçu des données :", databc2.head())
+                fig2 = px.bar(databc2, x="Poste", y="Emission", title="Émissions par Poste", labels={"Emission": "Émissions (kgCO2)"})
+                st.plotly_chart(fig2)
+                
+            except Exception as e:
+                st.error(f"Erreur lors de la lecture du fichier : {e}")
 # =========================================
 # Onglet 2 : Croissance de l'organisation
 # =========================================
 
 
 with tabs[1]:
-    print(databc)
-    st.write("test transfert des datas importées vers deuxième onglet:", databc.head())
+    #st.write("test transfert des datas importées vers deuxième onglet:", databc.head(), databc2.head())
+    #st.write("test lien croissance effets struct et solutions:", data2030.head(), data2030F.head())
     # Ajouter une interaction : Filtrer par seuil d'émission
     #st.sidebar.title("Filtrage")
     #emission_threshold = st.sidebar.slider("Afficher les postes avec des émissions supérieures à :", 
@@ -116,59 +147,106 @@ with tabs[1]:
         st.write(f"Croissance 2030 définie à **{growth_rate_2030}%**.")
         
     with col2:
-        growth_rate_2035 = st.slider("Taux de croissance entre 2030 et 2035 (%)", min_value=-50, max_value=50, value=0, step=1)
+        growth_rate_2035 = st.slider("Taux de croissance de 2030 à 2035 (%)", min_value=-50, max_value=50, value=0, step=1)
         st.write(f"Croissance 2035 définie à **{growth_rate_2035}%**.")
-    if uploaded_file:
-        data2030=databc.copy()
-        data2035=databc.copy()
+    with col1:
         
-        data2030["Quantité"]=data2030["Quantité"]*(1+growth_rate_2030/100)
-        data2030["Emission"]=data2030["Emission"]*(1+growth_rate_2030/100)
-        data2035["Quantité"]=data2035["Quantité"]*(1+growth_rate_2030/100)
-        data2035["Emission"]=data2035["Emission"]*(1+growth_rate_2030/100)
-        #st.write("Croissance appliquée à 2030 :", data2030.head())
+        if uploaded_file:
+                        
+            data2030["Quantité"]=data2030["Quantité"]*(1+growth_rate_2030/100)
+            data2030["Emission"]=data2030["Emission"]*(1+growth_rate_2030/100)
+            data2035["Quantité"]=data2035["Quantité"]*(1+growth_rate_2030/100)
+            data2035["Emission"]=data2035["Emission"]*(1+growth_rate_2030/100)
+            #st.write("Croissance appliquée à 2030 et 2035 :", data2030.head(), data)
+            
+            data2035["Quantité"]=data2035["Quantité"]*(1+growth_rate_2035/100)
+            data2035["Emission"]=data2035["Emission"]*(1+growth_rate_2035/100)
+            #st.write("Croissance appliquée à 2035 :", data2035.head())
+            
+            services = [databc["Emission"][0],data2030["Emission"][0],data2035["Emission"][0]]
+            goods = [databc["Emission"][1],data2030["Emission"][1],data2035["Emission"][1]]
+            travel = [databc["Emission"][2],data2030["Emission"][2],data2035["Emission"][2]]
+            commuting = [databc["Emission"][3],data2030["Emission"][3],data2035["Emission"][3]]
+            event = [databc["Emission"][4],data2030["Emission"][4],data2035["Emission"][4]]
+            
+            years = [2025, 2030, 2035]
+            
+            categoriesca1 = np.array([services, goods, travel, commuting, event])
+            cumulativeca1 = np.cumsum(categoriesca1, axis=0)
+            
+            # Create the stacked area plot
+            figca1, ax = plt.subplots(figsize=(10, 6))
+            ax.fill_between(years, 0, cumulativeca1[0], label='Services', alpha=0.7)
+            ax.fill_between(years, cumulativeca1[0], cumulativeca1[1], label='Goods', alpha=0.7)
+            ax.fill_between(years, cumulativeca1[1], cumulativeca1[2], label='Travel', alpha=0.7)
+            ax.fill_between(years, cumulativeca1[2], cumulativeca1[3], label='Commuting', alpha=0.7)
+            ax.fill_between(years, cumulativeca1[3], cumulativeca1[4], label='Event', alpha=0.7)
+            
+            # Customize the plot for figca
+            ax.set_title("Carbon Modelling", fontsize=14)
+            ax.set_xlabel("Year", fontsize=12)
+            ax.set_ylabel("kgCO2", fontsize=12)
+            ax.set_xticks(years)
+            ax.legend()
+            ax.grid(axis='y', linestyle='--', alpha=0.6)
+            
+            # Display the plot in Streamlit
+            st.pyplot(figca1)
+            st.write("test lien croissance effets struct et solutions:",data2030.head())
+    with col2:        
+        if uploaded_file2:
+            
+                
+            data2030F["Quantité"]=data2030F["Quantité"]*(1+growth_rate_2030/100)
+            data2030F["Emission"]=data2030F["Emission"]*(1+growth_rate_2030/100)
+            data2035F["Quantité"]=data2035F["Quantité"]*(1+growth_rate_2030/100)
+            data2035F["Emission"]=data2035F["Emission"]*(1+growth_rate_2030/100)
+            #st.write("Croissance appliquée à 2030 :", data2030.head())
+            
+            data2035F["Quantité"]=data2035F["Quantité"]*(1+growth_rate_2035/100)
+            data2035F["Emission"]=data2035F["Emission"]*(1+growth_rate_2035/100)
+            #st.write("Croissance appliquée à 2035 :", data2035.head())
+            
+            servicesF = [databc2["Emission"][0],data2030F["Emission"][0],data2035F["Emission"][0]]
+            goodsF = [databc2["Emission"][1],data2030F["Emission"][1],data2035F["Emission"][1]]
+            travelF = [databc2["Emission"][2],data2030F["Emission"][2],data2035F["Emission"][2]]
+            commutingF = [databc2["Emission"][3],data2030F["Emission"][3],data2035F["Emission"][3]]
+            eventF = [databc2["Emission"][4],data2030F["Emission"][4],data2035F["Emission"][4]]
+            
+            years = [2025, 2030, 2035]
+            
+            categoriesfi1 = np.array([servicesF, goodsF, travelF, commutingF, eventF])
+            cumulativefi1 = np.cumsum(categoriesfi1, axis=0)
+            
+            # Create the stacked area plot
+            figca2, ax = plt.subplots(figsize=(10, 6))
+            ax.fill_between(years, 0, cumulativefi1[0], label='Services', alpha=0.7)
+            ax.fill_between(years, cumulativefi1[0], cumulativefi1[1], label='Goods', alpha=0.7)
+            ax.fill_between(years, cumulativefi1[1], cumulativefi1[2], label='Travel', alpha=0.7)
+            ax.fill_between(years, cumulativefi1[2], cumulativefi1[3], label='Commuting', alpha=0.7)
+            ax.fill_between(years, cumulativefi1[3], cumulativefi1[4], label='Event', alpha=0.7)
+            
+            # Customize the plot for figca
+            ax.set_title("Finance Modelling", fontsize=14)
+            ax.set_xlabel("Year", fontsize=12)
+            ax.set_ylabel("kCHF", fontsize=12)
+            ax.set_xticks(years)
+            ax.legend()
+            ax.grid(axis='y', linestyle='--', alpha=0.6)
+            
+            # Display the plot in Streamlit
+            st.pyplot(figca2)
         
-        data2035["Quantité"]=data2035["Quantité"]*(1+growth_rate_2035/100)
-        data2035["Emission"]=data2035["Emission"]*(1+growth_rate_2035/100)
-        #st.write("Croissance appliquée à 2035 :", data2035.head())
-        
-        services = [databc["Emission"][0],data2030["Emission"][0],data2035["Emission"][0]]
-        goods = [databc["Emission"][1],data2030["Emission"][1],data2035["Emission"][1]]
-        travel = [databc["Emission"][2],data2030["Emission"][2],data2035["Emission"][2]]
-        commuting = [databc["Emission"][3],data2030["Emission"][3],data2035["Emission"][3]]
-        event = [databc["Emission"][4],data2030["Emission"][4],data2035["Emission"][4]]
-        
-        years = [2025, 2030, 2035]
-        
-        categoriesca1 = np.array([services, goods, travel, commuting, event])
-        cumulativeca1 = np.cumsum(categoriesca1, axis=0)
-        
-        # Create the stacked area plot
-        figca1, ax = plt.subplots(figsize=(10, 6))
-        ax.fill_between(years, 0, cumulativeca1[0], label='Services', alpha=0.7)
-        ax.fill_between(years, cumulativeca1[0], cumulativeca1[1], label='Goods', alpha=0.7)
-        ax.fill_between(years, cumulativeca1[1], cumulativeca1[2], label='Travel', alpha=0.7)
-        ax.fill_between(years, cumulativeca1[2], cumulativeca1[3], label='Commuting', alpha=0.7)
-        ax.fill_between(years, cumulativeca1[3], cumulativeca1[4], label='Event', alpha=0.7)
-        
-        # Customize the plot for figca
-        ax.set_title("Carbon Modelling", fontsize=14)
-        ax.set_xlabel("Year", fontsize=12)
-        ax.set_ylabel("kgCO2", fontsize=12)
-        ax.set_xticks(years)
-        ax.legend()
-        ax.grid(axis='y', linestyle='--', alpha=0.6)
-        
-        # Display the plot in Streamlit
-        st.pyplot(figca1)
-        
-                    
+            st.write("test lien croissance effets struct et solutions:",data2030F.head())
+               
 # =========================================
 # Onglet 3 : Effets structurels et impacts
 # =========================================
 
 
 with tabs[2]:
+    
+    
     
     col1,col2= st.columns(2)
     
@@ -196,6 +274,9 @@ with tabs[2]:
         
     # Mise à jour des FEs et des Emissions en fonction des effets structurels
     if uploaded_file:
+        
+        st.write("test lien croissance effets struct et solutions:", data2030.head())
+        
         data2030["FE"][0]=data2030["FE"][0]*(1+structural_effect_services_2030/100)
         data2030["Emission"][0]=data2030["Emission"][0]*(1+structural_effect_services_2030/100)
         
@@ -254,13 +335,15 @@ with tabs[2]:
         # Display the plot after the structural effects in Streamlit
         st.pyplot(figca2)
         
-        
+        st.write("test lien croissance effets struct et solutions:", data2030.head())
 # =========================================    
 # Onglet 4 : Création de solutions
 # =========================================
 
 
 with tabs[3]:
+    
+    
     st.title("Créer une solution")
 
     # Étape 1 : Nom de la solution
@@ -273,13 +356,23 @@ with tabs[3]:
 
     # Étape 3 : Entrée des coefficients
     st.write("Entrez les coefficients pour les 5 éléments :")
-    elements = ["Services", "Goods", "Travel", "Commuting", "Event"]
+    #elements = ["Services", "Goods", "Travel", "Commuting", "Event"]
     
-    coefficient_services = st.number_input("Coefficient pour services :", value=0.0, step=0.1)
-    coefficient_goods = st.number_input("Coefficient pour goods :", value=0.0, step=0.1)
-    coefficient_travel = st.number_input("Coefficient pour travel :", value=0.0, step=0.1)
-    coefficient_commuting = st.number_input("Coefficient pour commuting :", value=0.0, step=0.1)
-    coefficient_event = st.number_input("Coefficient pour event :", value=0.0, step=0.1)
+    col1,col2= st.columns(2)
+    
+    with col1:
+        coefficient_services = st.number_input("Coefficient pour services :", value=0.0, step=0.1)
+        coefficient_goods = st.number_input("Coefficient pour goods :", value=0.0, step=0.1)
+        coefficient_travel = st.number_input("Coefficient pour travel :", value=0.0, step=0.1)
+        coefficient_commuting = st.number_input("Coefficient pour commuting :", value=0.0, step=0.1)
+        coefficient_event = st.number_input("Coefficient pour event :", value=0.0, step=0.1)
+        
+    with col2:
+        coefficient_servicesF = st.number_input("Coefficient cout pour services :", value=0.0, step=0.1)
+        coefficient_goodsF = st.number_input("Coefficient cout pour goods :", value=0.0, step=0.1)
+        coefficient_travelF = st.number_input("Coefficient cout pour travel :", value=0.0, step=0.1)
+        coefficient_commutingF = st.number_input("Coefficient cout pour commuting :", value=0.0, step=0.1)
+        coefficient_eventF = st.number_input("Coefficient cout pour event :", value=0.0, step=0.1)
     target_idea = st.number_input("Si vous avez déjà une première idée de la cible qui sera visée :", value=0.0, step=1.0)
     
     # Ajouter une cible initiale pour chaque combinaison solution/année
@@ -299,7 +392,9 @@ with tabs[3]:
                     # Créer un DataFrame temporaire pour la nouvelle solutio
                     new_row = pd.DataFrame([{"Nom": solution_name, "Année": year, "Coefficient pour services": coefficient_services, 
                                              "Coefficient pour goods": coefficient_goods,"Coefficient pour travel": coefficient_travel, "Coefficient pour commuting": coefficient_commuting, 
-                                             "Coefficient pour event": coefficient_event, "Target": target_idea}])
+                                             "Coefficient pour event": coefficient_event,"Coefficient cout pour services":coefficient_servicesF,"Coefficient cout pour goods":coefficient_goodsF,
+                                             "Coefficient cout pour travel":coefficient_travelF, "Coefficient cout pour commuting":coefficient_commutingF,
+                                             "Coefficient cout pour event":coefficient_eventF , "Target": target_idea}])
                     
                     # Concaténer au DataFrame existant dans le session_state
                     st.session_state["solutions"] = pd.concat([st.session_state["solutions"], new_row], ignore_index=True)
@@ -314,6 +409,10 @@ with tabs[3]:
 
 with tabs[4]:
     st.title("Interactive Target Dashboard")
+    
+    # st.write("test lien croissance effets struct et solutions:", data2030.head(), data2030F.head())
+    
+    
     st.title("Définir les targets des solutions")
 
     # Vérifier si des solutions existent
@@ -334,53 +433,100 @@ with tabs[4]:
             name = st.session_state["solutions"].iloc[i, 0]
             st.write ("Name:", name)
             
-            st.session_state["solutions"].iloc[i, 7]=st.slider(name, min_value=0.0, max_value=100.0, value=0.0, step=1.0)
+            st.session_state["solutions"].iloc[i, 12]=st.slider(name, min_value=0.0, max_value=100.0, value=0.0, step=1.0)
             
         st.dataframe(st.session_state["solutions"])    
+        col1,col2= st.columns(2)
+        with col1:
+            if uploaded_file:
+                for j in range(solutionsrows):
+                    if st.session_state["solutions"].iloc[j, 1] == 2030:
+                        for k in range (5):
+                            data2030["Quantité"][k] = data2030["Quantité"] [k]+ data2030["Quantité"][k]*st.session_state["solutions"].iloc[j,2+k]*st.session_state["solutions"].iloc[j, 12]/100
+                            data2030["Emission"][k] = data2030["Emission"] [k]+ data2030["Emission"][k]*st.session_state["solutions"].iloc[j,2+k]*st.session_state["solutions"].iloc[j, 12]/100
+                    else : 
+                        for l in range (5):
+                            data2035["Quantité"][l] = data2035["Quantité"] [l]+ data2035["Quantité"][l]*st.session_state["solutions"].iloc[j,2+l]*st.session_state["solutions"].iloc[j, 12]/100
+                            data2035["Emission"][l] = data2035["Emission"] [l]+ data2035["Emission"][l]*st.session_state["solutions"].iloc[j,2+l]*st.session_state["solutions"].iloc[j, 12]/100
+                #st.write("data2030", data2030.head())
+                #st.write("data2030F", data2030F.head())
+                
+                st.write("data2030", data2030.head())
+                
+                services = [databc["Emission"][0],data2030["Emission"][0],data2035["Emission"][0]]
+                goods = [databc["Emission"][1],data2030["Emission"][1],data2035["Emission"][1]]
+                travel = [databc["Emission"][2],data2030["Emission"][2],data2035["Emission"][2]]
+                commuting = [databc["Emission"][3],data2030["Emission"][3],data2035["Emission"][3]]
+                event = [databc["Emission"][4],data2030["Emission"][4],data2035["Emission"][4]]
+                
+                categoriesca2 = np.array([services, goods, travel, commuting, event])
+                cumulativeca2 = np.cumsum(categoriesca2, axis=0)
+                
+                # Create the stacked area plot for figca2
+                figca2, ax = plt.subplots(figsize=(10, 6))
+                ax.fill_between(years, 0, cumulativeca2[0], label='Services', alpha=0.7)
+                ax.fill_between(years, cumulativeca2[0], cumulativeca2[1], label='Goods', alpha=0.7)
+                ax.fill_between(years, cumulativeca2[1], cumulativeca2[2], label='Travel', alpha=0.7)
+                ax.fill_between(years, cumulativeca2[2], cumulativeca2[3], label='Commuting', alpha=0.7)
+                ax.fill_between(years, cumulativeca2[3], cumulativeca2[4], label='Event', alpha=0.7)
+                
+                # Customize the plot for figca2
+                ax.set_title("Carbon Modelling", fontsize=14)
+                ax.set_xlabel("Year", fontsize=12)
+                ax.set_ylabel("kgCO2", fontsize=12)
+                ax.set_xticks(years)
+                ax.legend()
+                ax.grid(axis='y', linestyle='--', alpha=0.6)
+                
+                # Display the plot after the structural effects in Streamlit
+                st.pyplot(figca2)
+            else: 
+                st.warning("Pas de fichiers ca upload")
         
-        if uploaded_file:
-            for j in range(solutionsrows):
-                if st.session_state["solutions"].iloc[j, 1] == 2030:
-                    for k in range (5):
-                        data2030["Quantité"][k] = data2030["Quantité"] [k]+ data2030["Quantité"][k]*st.session_state["solutions"].iloc[j,2+k]*st.session_state["solutions"].iloc[j, 7]/100
-                        data2030["Emission"][k] = data2030["Emission"] [k]+ data2030["Emission"][k]*st.session_state["solutions"].iloc[j,2+k]*st.session_state["solutions"].iloc[j, 7]/100
-                else : 
-                    for l in range (5):
-                        data2035["Quantité"][l] = data2035["Quantité"] [l]+ data2035["Quantité"][l]*st.session_state["solutions"].iloc[j,2+l]*st.session_state["solutions"].iloc[j, 7]/100
-                        data2035["Emission"][l] = data2035["Emission"] [l]+ data2035["Emission"][l]*st.session_state["solutions"].iloc[j,2+l]*st.session_state["solutions"].iloc[j, 7]/100
-            st.write("data2030", data2030.head())
-            st.write("data2030", data2035.head())
-            
-            
-            services = [databc["Emission"][0],data2030["Emission"][0],data2035["Emission"][0]]
-            goods = [databc["Emission"][1],data2030["Emission"][1],data2035["Emission"][1]]
-            travel = [databc["Emission"][2],data2030["Emission"][2],data2035["Emission"][2]]
-            commuting = [databc["Emission"][3],data2030["Emission"][3],data2035["Emission"][3]]
-            event = [databc["Emission"][4],data2030["Emission"][4],data2035["Emission"][4]]
-            
-            categoriesca2 = np.array([services, goods, travel, commuting, event])
-            cumulativeca2 = np.cumsum(categoriesca2, axis=0)
-            
-            # Create the stacked area plot for figca2
-            figca2, ax = plt.subplots(figsize=(10, 6))
-            ax.fill_between(years, 0, cumulativeca2[0], label='Services', alpha=0.7)
-            ax.fill_between(years, cumulativeca2[0], cumulativeca2[1], label='Goods', alpha=0.7)
-            ax.fill_between(years, cumulativeca2[1], cumulativeca2[2], label='Travel', alpha=0.7)
-            ax.fill_between(years, cumulativeca2[2], cumulativeca2[3], label='Commuting', alpha=0.7)
-            ax.fill_between(years, cumulativeca2[3], cumulativeca2[4], label='Event', alpha=0.7)
-            
-            # Customize the plot for figca2
-            ax.set_title("Carbon Modelling", fontsize=14)
-            ax.set_xlabel("Year", fontsize=12)
-            ax.set_ylabel("kgCO2", fontsize=12)
-            ax.set_xticks(years)
-            ax.legend()
-            ax.grid(axis='y', linestyle='--', alpha=0.6)
-            
-            # Display the plot after the structural effects in Streamlit
-            st.pyplot(figca2)
-        else: 
-            st.warning("Pas de fichiers upload")
+        with col2:
+            if uploaded_file2:
+                for j in range(solutionsrows):
+                    if st.session_state["solutions"].iloc[j, 1] == 2030:
+                        for k in range (5):
+                            data2030F["Quantité"][k] = data2030F["Quantité"] [k]+ data2030F["Quantité"][k]*st.session_state["solutions"].iloc[j,7+k]*st.session_state["solutions"].iloc[j, 12]/100
+                            data2030F["Emission"][k] = data2030F["Emission"] [k]+ data2030F["Emission"][k]*st.session_state["solutions"].iloc[j,7+k]*st.session_state["solutions"].iloc[j, 12]/100
+                    else : 
+                        for l in range (5):
+                            data2035F["Quantité"][l] = data2035F["Quantité"] [l]+ data2035F["Quantité"][l]*st.session_state["solutions"].iloc[j,7+l]*st.session_state["solutions"].iloc[j, 12]/100
+                            data2035F["Emission"][l] = data2035F["Emission"] [l]+ data2035F["Emission"][l]*st.session_state["solutions"].iloc[j,7+l]*st.session_state["solutions"].iloc[j, 12]/100
+                
+                st.write("data2030F", data2030F.head())
+                
+                
+                servicesF = [databc2["Emission"][0],data2030F["Emission"][0],data2035F["Emission"][0]]
+                goodsF = [databc2["Emission"][1],data2030F["Emission"][1],data2035F["Emission"][1]]
+                travelF = [databc2["Emission"][2],data2030F["Emission"][2],data2035F["Emission"][2]]
+                commutingF = [databc2["Emission"][3],data2030F["Emission"][3],data2035F["Emission"][3]]
+                eventF = [databc2["Emission"][4],data2030F["Emission"][4],data2035F["Emission"][4]]
+                
+                categoriesfi2 = np.array([servicesF, goodsF, travelF, commutingF, eventF])
+                cumulativefi2 = np.cumsum(categoriesfi2, axis=0)
+                
+                # Create the stacked area plot for figca2
+                figfi2, ax = plt.subplots(figsize=(10, 6))
+                ax.fill_between(years, 0, cumulativefi2[0], label='Services', alpha=0.7)
+                ax.fill_between(years, cumulativefi2[0], cumulativefi2[1], label='Goods', alpha=0.7)
+                ax.fill_between(years, cumulativefi2[1], cumulativefi2[2], label='Travel', alpha=0.7)
+                ax.fill_between(years, cumulativefi2[2], cumulativefi2[3], label='Commuting', alpha=0.7)
+                ax.fill_between(years, cumulativefi2[3], cumulativefi2[4], label='Event', alpha=0.7)
+                
+                # Customize the plot for figca2
+                ax.set_title("Finance Modelling", fontsize=14)
+                ax.set_xlabel("Year", fontsize=12)
+                ax.set_ylabel("kCHF", fontsize=12)
+                ax.set_xticks(years)
+                ax.legend()
+                ax.grid(axis='y', linestyle='--', alpha=0.6)
+                
+                # Display the plot after the structural effects in Streamlit
+                st.pyplot(figfi2)
+            else: 
+                st.warning("Pas de fichiers fi upload")
         #target_idea = st.number_input(st.session_state["Nom"], value=0.0, step=1.0)
         #st.write("Target")
         # Générer un curseur pour chaque combinaison solution/année
@@ -433,3 +579,5 @@ with tabs[4]:
 
     else:
         st.warning("Aucune solution enregistrée.")
+        
+    #st.write("test lien croissance effets struct et solutions:", data2030.head(), data2030F.head())
