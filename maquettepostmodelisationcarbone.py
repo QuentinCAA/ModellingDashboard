@@ -185,6 +185,10 @@ with tabs[1]:
     col1,col2= st.columns(2)
     
     if uploaded_file:
+        data = pd.read_excel(uploaded_file)
+       
+        databaseline=data.copy()
+        
         budget_2024 = st.session_state["budgets"].get(2024, 1)  # Valeur par défaut = 1 pour éviter une division par zéro
         budget_2030 = st.session_state["budgets"].get(2030, 1)
         budget_2035 = st.session_state["budgets"].get(2035, 1)
